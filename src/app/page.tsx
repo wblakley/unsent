@@ -10,7 +10,7 @@ type LatestLetter = { id: string };
 
 
 export default function HomePage() {
-  const router = useRouter();
+  
   const supabase = createClient();
 
   const [latest, setLatest] = useState<LatestLetter | null>(null);
@@ -66,21 +66,25 @@ export default function HomePage() {
         </div>
 
         <div className="pill-row">
-        <Link className="pill-primary" href="/letters/new">
 
-            Begin a letter
-          </Link>
 
-          {latest && (
   <Link
-    className="pill-ghost"
-    href={`/letters/${latest.id}`}
+    className="pill-primary"
+    href="/letters/new"
   >
-    Continue latest draft
+    Begin a letter
   </Link>
-)}
- 
-        </div>
+
+  {latest && (
+    <Link
+      className="pill-ghost"
+      href={`/letters/${latest.id}`}
+    >
+      Continue latest draft
+    </Link>
+  )}
+</div>
+
       </section>
     </div>
   );

@@ -339,6 +339,24 @@ p {
   transform: translateY(-1px);
 }
 
+/* ✅ Mobile-safe pill sizing (prevents overlap) */
+.pill-primary,
+.pill-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 44px;
+  height: auto;
+
+  padding: 12px 20px;
+  line-height: 1.2;
+
+  white-space: normal;
+  text-align: center;
+}
+
+
 /* Secondary action — quiet + respectful */
 .pill-secondary {
   padding: 11px 20px;
@@ -504,4 +522,55 @@ a.letter-row:visited {
   border: 1px solid rgba(15,25,18,0.16);
   background: rgba(255,255,255,0.45);
   font-size: 12px;
+}
+
+
+/* ==========================
+   HOME: pill buttons layout
+   ========================== */
+
+/* default: mobile first */
+.pill-row {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 24px;
+  align-items: stretch;
+}
+
+.pill-row > a {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* desktop */
+@media (min-width: 640px) {
+  .pill-row {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-top: 16px;
+  }
+
+  .pill-row > a {
+    width: auto;
+  }
+}
+
+/* IMPORTANT: prevent weird mobile hover “stuck” shifts */
+@media (hover: none) {
+  .pill-primary:hover,
+  .pill-ghost:hover {
+    transform: none !important;
+  }
+}
+
+/* extra safety: ensure no absolute positioning can ever cause overlap */
+.pill-primary,
+.pill-ghost {
+  position: static !important;
+  transform: none;
+  margin: 0;
 }
