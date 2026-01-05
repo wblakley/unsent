@@ -40,6 +40,11 @@ export default function LettersPage() {
   const [letters, setLetters] = useState<LetterRow[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+  const [releaseNote, setReleaseNote] = useState<string | null>(null);
+  const [isReleasing, setIsReleasing] = useState(false);
+  const [releaseFade, setReleaseFade] = useState(false);
+
+
   // Fetch once on mount
   useEffect(() => {
     let cancelled = false;
@@ -89,13 +94,20 @@ export default function LettersPage() {
     router.push("/login");
   }
   
-  
   async function onDeleteLetter(e: React.MouseEvent, letterId: string) {
     e.preventDefault();
     e.stopPropagation();
   
-    const ok = window.confirm("Delete this letter? This cannot be undone.");
+    const ok = window.confirm(
+      "Release this letter?\n\nYou don’t need to carry the weight of that letter anymore."
+    );
     if (!ok) return;
+  
+    // Ritual starts
+    setIsReleasing(true);
+    setReleaseNote("You don’t need to carry the weight of that letter anymore.");
+    setReleaseFade(false);
+
   
     // Optional: optimistic UI (remove immediately)
     setLetters((prev) => prev.filter((x) => x.id !== letterId));
@@ -115,23 +127,62 @@ export default function LettersPage() {
       .eq("user_id", user.id);
   
     if (error) {
-      // If delete failed, reload to restore truth
-      alert(`Delete failed: ${error.message}`);
+      alert(`Release failed: ${error.message}`);
+      setIsReleasing(false);
+      setReleaseNote(null);
+      setReleaseFade(false);
+
       router.refresh?.();
+      return;
     }
+   // Pause, then fade, then clear message
+setTimeout(() => {
+  setReleaseFade(true);
+}, 1200);
+
+setTimeout(() => {
+  setIsReleasing(false);
+  setReleaseNote(null);
+  setReleaseFade(false);
+}, 2200);
+                                      // fully done after ~2.2s
+
   }
+  
+  
+  
+
   
 
   const emptyState = useMemo(() => !loading && letters.length === 0 && !error, [loading, letters, error]);
 
   return (
     <div className="letters-shell">
+
+    {releaseNote && (
+  <div
+    style={{
+      margin: "12px 0 18px",
+      textAlign: "center",
+      fontSize: 14,
+      color: "#6b6b6b",
+      opacity: releaseFade ? 0 : 0.95,
+      transition: "opacity 900ms ease",
+    }}
+  >
+    {releaseNote}
+  </div>
+)}
+
+
 {/* Back to home button */}
 <Link href="/" className="nav-back">
   ← Back to home
 </Link>
 
-      <h1 style={{ fontSize: 42, marginBottom: 6 }}>My Letters</h1>
+<h1 style={{ fontSize: 42, marginBottom: 6 }}>My Letters</h1>
+
+
 
       <div style={{ opacity: 0.75, marginBottom: 18 }}>
         Logged in as: <b>{userEmail ?? "…"}</b>
@@ -205,8 +256,8 @@ export default function LettersPage() {
           cursor: "pointer",
         }}
       >
-        Delete
-      </button>
+      Release
+  </button>
     </div>
   </div>
 
