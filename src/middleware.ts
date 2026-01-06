@@ -35,7 +35,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/login") ||
     pathname.startsWith("/auth") ||
     pathname.startsWith("/api") ||
-    pathname.startsWith("/delete-account");
+    pathname.startsWith("/delete-account") ||
+    pathname.startsWith("/privacy-policy");
 
 
   // If not logged in, block protected routes
