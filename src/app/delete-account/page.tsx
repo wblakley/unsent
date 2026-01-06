@@ -11,12 +11,17 @@ export default function DeleteAccountPage() {
 
         <div className="mt-6 rounded-xl border border-black/10 bg-white/70 p-5">
           <p className="font-medium">Email:</p>
-          <p className="mt-1 select-all font-mono text-sm">
-            support@unsent-drab.vercel.app
-          </p>
+          <a
+  href="mailto:alicemaedllc@gmail.com"
+  className="mt-1 inline-block select-all font-mono text-sm underline"
+>
+  alicemaedllc@gmail.com
+</a>
+
           <p className="mt-3 text-sm opacity-80">
-            (Replace this with your real support email when you have it.)
-          </p>
+  Please email us from the address associated with your Unsent account.
+</p>
+
         </div>
 
         <h2 className="mt-10 text-xl font-semibold">What gets deleted</h2>
