@@ -42,7 +42,8 @@ export default function LoginPage() {
     setStatus("Sending link...");
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: "http://localhost:3000/letters" },
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` }
+,
     });
 
     if (error) setStatus("❌ " + error.message);
