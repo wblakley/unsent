@@ -1,8 +1,13 @@
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/utils/supabase/client";
+
 
 export default function NewLetterPage() {
   const router = useRouter();
