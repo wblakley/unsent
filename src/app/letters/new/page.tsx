@@ -1,58 +1,35 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/utils/supabase/client";
-
 
 export default function NewLetterPage() {
   const router = useRouter();
-
-  // ✅ Make supabase instance stable (same object across renders)
-  const supabase = useMemo(() => createClient(), []);
-
-  const [msg, setMsg] = useState("Creating your new letter...");
-
-  // ✅ Prevent double-run (helps in dev/StrictMode)
   const didRun = useRef(false);
+  const [msg, setMsg] = useState("Creating your new letter...");
 
   useEffect(() => {
     if (didRun.current) return;
     didRun.current = true;
 
-    const run = async () => {
-      const { data: auth } = await supabase.auth.getUser();
-      const user = auth?.user;
+    (async () => {
+      const res = await fetch("/letters/new", { method: "POST" });
 
-      if (!user) {
-        setMsg("Session missing. Please refresh this page.");
+      if (res.status === 401) {
+        router.replace("/login");
         return;
       }
-      
 
-      const { data, error } = await supabase
-        .from("letters")
-        .insert({
-          user_id: user.id,
-          title: "Untitled",
-          body: "",
-          status: "draft",
-        })
-        .select("id")
-        .single();
-
-      if (error || !data?.id) {
-        setMsg(`Error creating letter: ${error?.message ?? "Unknown error"}`);
+      if (!res.ok) {
+        const text = await res.text();
+        setMsg(`Error creating letter: ${text}`);
         return;
       }
-      const newId = data.id;
-      router.replace(`/letters/${newId}?new=1`);
 
-
-    };
-
-    run();
-  }, [router, supabase]);
+      const { id } = (await res.json()) as { id: string };
+      router.replace(`/letters/${id}?new=1`);
+    })();
+  }, [router]);
 
   return (
     <div style={{ padding: 40, maxWidth: 760, margin: "0 auto" }}>
