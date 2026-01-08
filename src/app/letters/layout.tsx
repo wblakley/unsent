@@ -1,7 +1,5 @@
-import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
-
-export const dynamic = "force-dynamic";
+import { redirect } from "next/navigation";
 
 export default async function LettersLayout({
   children,
@@ -11,7 +9,7 @@ export default async function LettersLayout({
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
 
-  if (!data?.user) {
+  if (!data.user) {
     redirect("/login");
   }
 
