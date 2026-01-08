@@ -1,17 +1,20 @@
-import { Suspense } from "react";
-import AuthCallbackClient from "./AuthCallbackClient";
+import { redirect } from "next/navigation";
+import { createClient } from "@/utils/supabase/server";
 
-export default function Page() {
-  return (
-    <Suspense
-      fallback={
-        <div style={{ padding: 40 }}>
-          <h1>Signing you in…</h1>
-          <p>Please wait.</p>
-        </div>
-      }
-    >
-      <AuthCallbackClient />
-    </Suspense>
-  );
+export const dynamic = "force-dynamic";
+
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: { code?: string; next?: string };
+}) {
+  const code = searchParams.code;
+  const next = searchParams.next || "/letters";
+
+  if (code) {
+    const supabase = await createClient();
+    await supabase.auth.exchangeCodeForSession(code);
+  }
+
+  redirect(next);
 }

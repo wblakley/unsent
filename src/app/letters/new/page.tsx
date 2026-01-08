@@ -46,7 +46,8 @@ export default function NewLetterPage() {
         return;
       }
       const newId = data.id;
-router.push(`/letters/${newId}?new=1`);
+      router.replace(`/letters/${newId}?new=1`);
+
 
     };
 
