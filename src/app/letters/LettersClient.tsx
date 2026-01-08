@@ -4,7 +4,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/utils/supabase/client";
+
 
 type LetterRow = {
   id: string;
@@ -33,7 +34,8 @@ function snippet(text: string | null, max = 80) {
 
 export default function LettersPage() {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
+
 
 
   const [loading, setLoading] = useState(true);
@@ -58,9 +60,12 @@ export default function LettersPage() {
       const user = userData?.user;
 
       if (userErr || !user) {
-        router.push("/login");
+        setError("Session not found. Please log in again.");
+        setLetters([]);
+        setLoading(false);
         return;
       }
+      
 
       if (!cancelled) setUserEmail(user.email ?? null);
 
@@ -88,11 +93,13 @@ export default function LettersPage() {
     return () => {
       cancelled = true;
     };
-  }, [router]);
+  }, [router, supabase]);
+
 
   async function onLogout() {
     await supabase.auth.signOut();
-    router.push("/login");
+    router.replace("/login");
+
   }
   
   async function onDeleteLetter(e: React.MouseEvent, letterId: string) {
@@ -117,9 +124,10 @@ export default function LettersPage() {
     const user = userData?.user;
   
     if (!user) {
-      router.push("/login");
+      alert("Session not found. Please log in again.");
       return;
     }
+    
   
     const { error } = await supabase
       .from("letters")
