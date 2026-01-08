@@ -1,42 +1,22 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
+import { NextResponse } from "next/server";
+import { createClient } from "@/utils/supabase/server";
 
-export async function GET(req: NextRequest) {
-  const url = new URL(req.url);
-  const code = url.searchParams.get("code");
+export async function GET(request: Request) {
+  const { searchParams, origin } = new URL(request.url);
 
-  // Always send user somewhere deterministic
-  const redirectTo = new URL("/letters", url.origin);
+  const code = searchParams.get("code");
+  const next = searchParams.get("next") ?? "/letters";
 
-  if (!code) {
-    // No code => can't create session
-    return NextResponse.redirect(new URL("/login", url.origin));
-  }
+  if (code) {
+    const supabase = await createClient();
 
-  const res = NextResponse.redirect(redirectTo);
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return req.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            res.cookies.set(name, value, options);
-          });
-        },
-      },
+    if (!error) {
+      return NextResponse.redirect(`${origin}${next}`);
     }
-  );
-
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
-
-  if (error) {
-    return NextResponse.redirect(new URL("/login", url.origin));
   }
 
-  return res;
+  // If we got here, exchange failed or code is missing.
+  return NextResponse.redirect(`${origin}/login?error=auth_callback`);
 }
