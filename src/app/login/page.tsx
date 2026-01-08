@@ -2,44 +2,35 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/utils/supabase/client"; // ✅ match your callback
+import { createClient } from "@/utils/supabase/client";
 
 export default function LoginPage() {
   const router = useRouter();
-
-  // ✅ Create the Supabase client ONCE (not every render)
   const supabase = useMemo(() => createClient(), []);
-
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<string>("");
 
   useEffect(() => {
-    let cancelled = false;
+    let alive = true;
 
-    async function checkSession() {
+    (async () => {
       const { data } = await supabase.auth.getSession();
-      if (cancelled) return;
+      if (!alive) return;
+      if (data.session) router.replace("/letters");
+    })();
 
-      if (data.session) {
-        router.replace("/letters");
-      }
-    }
-
-    checkSession();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) router.replace("/letters");
     });
 
     return () => {
-      cancelled = true;
-      authListener.subscription.unsubscribe();
+      alive = false;
+      sub.subscription.unsubscribe();
     };
   }, [router, supabase]);
 
   async function sendMagicLink() {
     setStatus("Sending link...");
-
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: `${window.location.origin}/auth/callback` },

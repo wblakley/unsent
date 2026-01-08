@@ -1,30 +1,46 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
-export function middleware(req: NextRequest) {
-  const pathname = req.nextUrl.pathname;
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
 
-  // ✅ Allow auth + login routes always
-  if (
-    pathname.startsWith("/auth") ||
-    pathname.startsWith("/login") ||
-    pathname.startsWith("/privacy-policy") ||
-    pathname === "/"
-  ) {
-    return NextResponse.next();
-  }
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, options: any) {
+          response.cookies.set({ name, value, ...options });
+        },
+        remove(name: string, options: any) {
+          response.cookies.set({ name, value: "", ...options });
+        },
+      },
+    }
+  );
 
-  // ✅ TEMPORARY: do NOT protect /letters in middleware
-  // This prevents the server from bouncing you back to /login
-  // while the client session lives in localStorage.
-  if (pathname.startsWith("/letters")) {
-    return NextResponse.next();
-  }
+  // IMPORTANT: this refreshes the session cookie if needed
+  await supabase.auth.getUser();
 
-  // If you had other protected routes, you can add them later properly with cookie-based auth.
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    /*
+      Run middleware on all routes except:
+      - next internal
+      - static files
+      - images
+      - favicon
+    */
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  ],
 };
