@@ -1,50 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 
 export default function LoginClient() {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [email, setEmail] = useState("");
-  const [msg, setMsg] = useState<string | null>(null);
+  const [status, setStatus] = useState<string>("");
 
-  async function sendLink(e: React.FormEvent) {
-    e.preventDefault();
-    setMsg(null);
-
-    const origin =
-      typeof window !== "undefined" ? window.location.origin : "";
+  async function sendMagicLink() {
+    setStatus("Sending code...");
 
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${origin}/auth/callback`,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
 
-    if (error) setMsg(error.message);
-    else setMsg("Magic link sent! Check your email.");
+    if (error) setStatus("❌ " + error.message);
+    else setStatus("✅ Check your email for the 6-digit code.");
   }
 
   return (
-    <div style={{ padding: 24, maxWidth: 420 }}>
+    <div style={{ padding: 40, maxWidth: 520 }}>
       <h1>Login</h1>
+      <p>Enter your email and we’ll send you a one-time code.</p>
 
-      <form onSubmit={sendLink} style={{ display: "grid", gap: 12, marginTop: 12 }}>
-        <input
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@email.com"
-          type="email"
-          required
-          style={{ padding: 10, borderRadius: 8, border: "1px solid #ccc" }}
-        />
-        <button type="submit" style={{ padding: 10, borderRadius: 8 }}>
-          Send magic link
-        </button>
-      </form>
+      <input
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="you@email.com"
+        style={{ width: "100%", padding: 12, marginTop: 12 }}
+      />
 
-      {msg && <p style={{ marginTop: 12 }}>{msg}</p>}
+      <button
+        onClick={sendMagicLink}
+        style={{ marginTop: 12, padding: "10px 14px" }}
+        disabled={!email}
+      >
+        Send code
+      </button>
+
+      {status && <p style={{ marginTop: 12 }}>{status}</p>}
     </div>
   );
 }
