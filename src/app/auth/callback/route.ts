@@ -1,25 +1,42 @@
-import { NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
+import { NextRequest, NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
-export async function GET(request: Request) {
-  const url = new URL(request.url);
+export async function GET(req: NextRequest) {
+  const url = new URL(req.url);
   const code = url.searchParams.get("code");
 
-  // Always land somewhere sane
-  const redirectTo = `${url.origin}/letters`;
+  // Always send user somewhere deterministic
+  const redirectTo = new URL("/letters", url.origin);
 
   if (!code) {
-    return NextResponse.redirect(`${url.origin}/login`);
+    // No code => can't create session
+    return NextResponse.redirect(new URL("/login", url.origin));
   }
 
-  const supabase = await createClient();
+  const res = NextResponse.redirect(redirectTo);
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return req.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            res.cookies.set(name, value, options);
+          });
+        },
+      },
+    }
+  );
 
   const { error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
-    return NextResponse.redirect(`${url.origin}/login`);
+    return NextResponse.redirect(new URL("/login", url.origin));
   }
 
-  // ✅ Cookie is now set server-side
-  return NextResponse.redirect(redirectTo);
+  return res;
 }
