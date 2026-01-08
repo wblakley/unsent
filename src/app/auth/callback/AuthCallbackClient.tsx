@@ -2,7 +2,11 @@
 
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@/utils/supabase/client"; // <-- IMPORTANT: use utils path
+import { createClient } from "@/utils/supabase/client";
+
+function sleep(ms: number) {
+  return new Promise((r) => setTimeout(r, ms));
+}
 
 export default function AuthCallbackClient() {
   const router = useRouter();
@@ -12,17 +16,17 @@ export default function AuthCallbackClient() {
     const run = async () => {
       const supabase = createClient();
 
-      // If you ever get ?code=... (PKCE flow), handle it too
+      // optional: allow ?next=/somewhere
+      const next = searchParams.get("next") || "/letters";
+
+      // 1) Try PKCE code flow if present
       const code = searchParams.get("code");
       if (code) {
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
-        if (!error) {
-          router.replace("/letters");
-          return;
-        }
+        await supabase.auth.exchangeCodeForSession(code);
+        // Don’t trust the return value alone; verify session below.
       }
 
-      // Your current links appear to be hash/token based
+      // 2) Try hash/token flow if present
       const hash = window.location.hash;
       if (hash && hash.includes("access_token")) {
         const params = new URLSearchParams(hash.slice(1));
@@ -30,21 +34,23 @@ export default function AuthCallbackClient() {
         const refresh_token = params.get("refresh_token");
 
         if (access_token && refresh_token) {
-          const { error } = await supabase.auth.setSession({
-            access_token,
-            refresh_token,
-          });
+          await supabase.auth.setSession({ access_token, refresh_token });
 
-          // Clean the URL
+          // Clean the URL after processing hash
           window.history.replaceState({}, document.title, "/auth/callback");
-
-          if (!error) {
-            router.replace("/letters");
-            return;
-          }
         }
       }
 
+      // 3) Give cookies a beat to settle, then check session (THIS is the key)
+      await sleep(150);
+
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        router.replace(next);
+        return;
+      }
+
+      // 4) If no session, then and only then go to login
       router.replace("/login");
     };
 

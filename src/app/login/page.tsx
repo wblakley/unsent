@@ -1,49 +1,40 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
-
+import { createClient } from "@/utils/supabase/client";
 
 export default function LoginPage() {
   const router = useRouter();
-  const supabase = createClient();
-
+  const supabase = useMemo(() => createClient(), []);
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<string>("");
 
-  // If already logged in, bounce to /letters
+  // If already logged in, go to /letters (one-time check only)
   useEffect(() => {
-    let isMounted = true;
-  
-    async function checkSession() {
+    let cancelled = false;
+
+    (async () => {
       const { data } = await supabase.auth.getSession();
-      if (!isMounted) return;
-  
-      if (data.session) {
+      if (!cancelled && data.session) {
         router.replace("/letters");
       }
-    }
-  
-    checkSession();
-  
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) router.replace("/letters");
-    });
-  
+    })();
+
     return () => {
-      isMounted = false;
-      authListener.subscription.unsubscribe();
+      cancelled = true;
     };
   }, [router, supabase]);
-  
 
   async function sendMagicLink() {
     setStatus("Sending link...");
+
+    const origin = window.location.origin;
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` }
-,
+      options: {
+        emailRedirectTo: `${origin}/auth/callback`,
+      },
     });
 
     if (error) setStatus("❌ " + error.message);
