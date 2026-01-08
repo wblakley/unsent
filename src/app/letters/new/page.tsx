@@ -2,9 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "../../../utils/supabase/client";
-
-
+import { createClient } from "@/utils/supabase/client";
 
 
 export default function NewLetterPage() {
@@ -27,9 +25,10 @@ export default function NewLetterPage() {
       const user = auth?.user;
 
       if (!user) {
-        router.push("/login");
+        setMsg("Session missing. Please refresh this page.");
         return;
       }
+      
 
       const { data, error } = await supabase
         .from("letters")
