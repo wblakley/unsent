@@ -13,7 +13,8 @@ export default function NewLetterPage() {
     didRun.current = true;
 
     (async () => {
-      const res = await fetch("/letters/new", { method: "POST" });
+      const res = await fetch("/api/letters/new", { method: "POST" });
+
 
       if (res.status === 401) {
         router.replace("/login");
