@@ -9,7 +9,9 @@ export default function LoginClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const next = searchParams.get("next") || "/letters";
+  const nextParam = searchParams.get("next");
+  const next = nextParam && nextParam.startsWith("/") ? nextParam : "/letters";
+   
 
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -52,13 +54,15 @@ export default function LoginClient() {
       setLoading(false);
       return;
     }
+// 🔑 IMPORTANT: make sure session is present client-side
+await supabase.auth.getSession();
 
-    // 🔑 IMPORTANT: force cookie/session to be written before redirect
-    await supabase.auth.getSession();
+setStatus("✅ Signed in! Redirecting...");
 
-    setStatus("✅ Signed in! Redirecting...");
-    router.replace(next);
-    router.refresh();
+// ✅ Production-safe redirect: force a full navigation so middleware/server sees cookie
+window.location.assign(next);
+setLoading(false);
+
   }
 
   return (
