@@ -18,7 +18,9 @@ export const metadata: Metadata = {
   title: "Unsent — For everything you never got to say.",
   description:
     "A private letter-writing space for the words you were never ready to send.",
+  manifest: "/manifest.webmanifest",
 };
+
 
 export default function RootLayout({
   children,

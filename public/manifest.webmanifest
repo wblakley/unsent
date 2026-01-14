@@ -1,0 +1,39 @@
+{
+  "background_color": "#f6f5f2",
+  "description": "A private letter-writing space for the words you were never ready to send.",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Unsent",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "Unsent",
+  "start_url": "/",
+  "theme_color": "#8fa99b",
+  "icons": [
+    {
+      "src": "https://unsentjournal.com/favicon.ico?favicon.0b3bf435.ico",
+      "type": "image/x-icon",
+      "sizes": "256x256",
+      "isSquare": true,
+      "isPng": false,
+      "isWebp": false,
+      "isJpg": false,
+      "width": 256,
+      "is512x512": false,
+      "is256x256": true,
+      "is192x192": false
+    },
+    {
+      "src": "https://unsentjournal.com/favicon.ico",
+      "type": "image/x-icon",
+      "isSquare": false,
+      "isPng": false,
+      "isWebp": false,
+      "isJpg": false,
+      "width": 0,
+      "is512x512": false,
+      "is256x256": false,
+      "is192x192": false
+    }
+  ]
+}
