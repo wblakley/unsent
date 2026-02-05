@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.unsentjournal.twa",
+      "sha256_cert_fingerprints": [
+        "96:B6:B4:55:F5:D4:04:D3:F7:6A:00:76:D1:47:FA:B6:AB:86:78:A0:57:33:53:D0:63:B8:13:36:73:A3:7F:EB"
+      ]
+    }
+  }
+]
